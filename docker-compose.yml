@@ -1,6 +1,6 @@
 services:
   awtrix-light-tibber:
-    image: stefanwichmann/awtrix-light-tibber
+    image: stefanwichmann/awtrix3-tibber
     restart: unless-stopped
     environment:
       - TZ=Europe/Berlin

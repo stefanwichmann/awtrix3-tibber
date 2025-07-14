@@ -11,7 +11,7 @@ import (
 var tibberDemoToken = "3A77EECF61BD445F47241A5A36202185C35AF3AF58609E19B53F3A8872AD7BE1-1"
 var flagTibberToken = flag.String("tibberToken", lookupEnv("TIBBER_TOKEN", tibberDemoToken), "Your Tibber developer API token")
 var flagTibberHomeId = flag.String("tibberHomeId", lookupEnv("TIBBER_HOME_ID", ""), "The Id of your Tibber home")
-var flagAwtrixIP = flag.String("awtrixIP", lookupEnv("AWTRIX_IP", "127.0.0.1"), "The IPv4 address of your Awtrix light device")
+var flagAwtrixIP = flag.String("awtrixIP", lookupEnv("AWTRIX_IP", "127.0.0.1"), "The IPv4 address of your Awtrix3 device")
 
 var customAppName = "tibberPrices"
 var chartBarCount = 36 - 12
