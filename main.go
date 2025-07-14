@@ -8,8 +8,9 @@ import (
 	"time"
 )
 
-var tibberDemoToken = "5K4MVS-OjfWhK_4yrjOlFe1F6kJXPVf7eQYggo8ebAE"
+var tibberDemoToken = "3A77EECF61BD445F47241A5A36202185C35AF3AF58609E19B53F3A8872AD7BE1-1"
 var flagTibberToken = flag.String("tibberToken", lookupEnv("TIBBER_TOKEN", tibberDemoToken), "Your Tibber developer API token")
+var flagTibberHomeId = flag.String("tibberHomeId", lookupEnv("TIBBER_HOME_ID", ""), "The Id of your Tibber home")
 var flagAwtrixIP = flag.String("awtrixIP", lookupEnv("AWTRIX_IP", "127.0.0.1"), "The IPv4 address of your Awtrix light device")
 
 var customAppName = "tibberPrices"
@@ -35,7 +36,7 @@ func main() {
 
 func fetchPrices() {
 	log.Println("Fetching Tibber prices...")
-	prices, err := readPrices(*flagTibberToken)
+	prices, err := readTibberPrices(*flagTibberToken, *flagTibberHomeId)
 	if err != nil {
 		log.Fatalf("Could not fetch prices: %v", err)
 	}
@@ -78,7 +79,7 @@ func updateDisplay() {
 		currentPriceString = fmt.Sprintf("%d¢", roundedPrice(currentPrice.Total))
 	}
 
-	commandsText := []AwtrixDrawCommand{{Command: "dt", X: 0, Y: 1, Text: currentPriceString, Color: "#FFFFFF"}}
+	commandsText := []AwtrixDrawCommand{{Command: "dt", X: 0, Y: 2, Text: currentPriceString, Color: "#FFFFFF"}}
 	commandsChart := mapToDrawingCommands(relevantPrices)
 	app := AwtrixApp{Draw: append(commandsText, commandsChart...)}
 

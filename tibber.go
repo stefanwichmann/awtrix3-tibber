@@ -22,7 +22,22 @@ type tibberViewer struct {
 }
 
 type tibberHome struct {
+	Id                  string             `json:"id"`
+	Nickname            string             `json:"appNickname"`
+	Timezone            string             `json:"timeZone"`
+	Address             tibberAddress      `json:"address"`
 	CurrentSubscription tibberSubscription `json:"currentSubscription"`
+}
+
+type tibberAddress struct {
+	AddressLine1 string `json:"address1"`
+	AddressLine2 string `json:"address2"`
+	AddressLine3 string `json:"address3"`
+	PostalCode   string `json:"postalCode"`
+	City         string `json:"city"`
+	Country      string `json:"country"`
+	Latitude     string `json:"latitude"`
+	Longitude    string `json:"longitude"`
 }
 
 type tibberSubscription struct {
@@ -40,8 +55,8 @@ type tibberPrice struct {
 	StartsAt time.Time `json:"startsAt"`
 }
 
-func readPrices(token string) ([]tibberPrice, error) {
-	prices, err := readCurrentConsumption(token)
+func readTibberPrices(token string, tibberHomeId string) ([]tibberPrice, error) {
+	prices, err := readCurrentSbuscriptions(token)
 	if err != nil {
 		return []tibberPrice{}, err
 	}
@@ -50,18 +65,40 @@ func readPrices(token string) ([]tibberPrice, error) {
 		return []tibberPrice{}, fmt.Errorf("could not find any homes in %+v", prices)
 	}
 
-	allPrices := prices.Data.Viewer.Homes[0].CurrentSubscription.PriceInformation.Today
-	allPrices = append(allPrices, prices.Data.Viewer.Homes[0].CurrentSubscription.PriceInformation.Tomorrow...)
-
-	// Tomorrow's prices are sometimes empty
-	if len(prices.Data.Viewer.Homes[0].CurrentSubscription.PriceInformation.Tomorrow) == 0 {
-		log.Printf("No price data for tomorrow")
+	log.Printf("Found %d home(s)...", len(prices.Data.Viewer.Homes))
+	for _, home := range prices.Data.Viewer.Homes {
+		log.Printf("Id: %s at %s (%s, %s)", home.Id, home.Address.AddressLine1, home.Address.City, home.Address.Country)
 	}
 
-	return allPrices, nil
+	if len(prices.Data.Viewer.Homes) == 0 {
+		return []tibberPrice{}, fmt.Errorf("could not find any homes in %+v", prices)
+	}
+
+	if len(prices.Data.Viewer.Homes) > 1 && len(tibberHomeId) == 0 {
+		return []tibberPrice{}, fmt.Errorf("found more than one home and the requested one was not specified")
+	}
+
+	// If we only have one home, return it's prices
+	if len(prices.Data.Viewer.Homes) == 1 {
+		allPrices := prices.Data.Viewer.Homes[0].CurrentSubscription.PriceInformation.Today
+		allPrices = append(allPrices, prices.Data.Viewer.Homes[0].CurrentSubscription.PriceInformation.Tomorrow...)
+		return allPrices, nil
+	}
+
+	// Find the requested home by Id
+	for _, home := range prices.Data.Viewer.Homes {
+		if home.Id == tibberHomeId {
+			allPrices := home.CurrentSubscription.PriceInformation.Today
+			allPrices = append(allPrices, home.CurrentSubscription.PriceInformation.Tomorrow...)
+			log.Printf("Found %d prices for home %s", len(allPrices), tibberHomeId)
+			return allPrices, nil
+		}
+	}
+
+	return []tibberPrice{}, fmt.Errorf("could not find prices matching home Id %s", tibberHomeId)
 }
 
-func readCurrentConsumption(token string) (tibberResponse, error) {
+func readCurrentSbuscriptions(token string) (tibberResponse, error) {
 	client := &http.Client{}
 
 	req, err := http.NewRequest("GET", "https://api.tibber.com/v1-beta/gql", nil)
@@ -73,7 +110,8 @@ func readCurrentConsumption(token string) (tibberResponse, error) {
 	req.Header.Add("Content-Type", "application/json")
 
 	q := req.URL.Query()
-	q.Add("query", "{viewer{homes{currentSubscription{priceInfo{current{total}today{total startsAt}tomorrow{total startsAt}}}}}}")
+	query := "{viewer{homes{id appNickname timeZone address{address1 address2 address3 postalCode city country latitude longitude} currentSubscription{ priceInfo{ current{total energy tax startsAt} today{total energy tax startsAt} tomorrow{total energy tax startsAt}}}}}}"
+	q.Add("query", query)
 	req.URL.RawQuery = q.Encode()
 
 	resp, err := client.Do(req)
