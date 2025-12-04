@@ -29,9 +29,9 @@ func main() {
 		updateKnowPrices()
 		updateDisplay()
 
-		// Make sure to update at the next full hour (+1 second) to show the bar chart correctly
+		// Make sure to update at the next full hour to update the bar chart correctly
 		nextUpdate := durationUntilNextFullHour()
-		log.Printf("Sleeping for %s", nextUpdate+1*time.Second)
+		log.Printf("Sleeping for %s", nextUpdate)
 		time.Sleep(nextUpdate)
 	}
 }
