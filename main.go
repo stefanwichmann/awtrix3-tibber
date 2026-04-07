@@ -169,20 +169,20 @@ func mapPriceToColor(price tibberPrice) string {
 	case price.Total <= 0:
 		return "#00E5FF"
 	case price.Total < 0.15:
-		return "#00FF00"
+		return "#7FFF7F"
 	case price.Total < 0.20:
-		return "#66FF00"
+		return "#B3FF9B"
 	case price.Total < 0.25:
-		return "#99FF00"
+		return "#CCFF99"
 	case price.Total < 0.30:
-		return "#CCFF00"
+		return "#D9FF99"
 	case price.Total < 0.35:
-		return "#FFFF00"
+		return "#FFFF99"
 	case price.Total < 0.40:
-		return "#FFCC00"
+		return "#FFDB4D"
 	case price.Total < 0.45:
-		return "#FF9900"
+		return "#FFB266"
 	default:
-		return "#FF0000"
+		return "#FF6666"
 	}
 }
